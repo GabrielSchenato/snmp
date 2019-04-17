@@ -6,10 +6,33 @@
 package View;
 
 import Class.Conexao;
+import Class.IfIndex;
 import Service.SNMPManager;
 import Util.EquipamentoUniversal;
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+import javax.xml.bind.DatatypeConverter;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.Dataset;
 import org.snmp4j.smi.OID;
 
 /**
@@ -20,16 +43,28 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
 
     private final Thread t;
     private SNMPManager snmp;
+    private String ip = null;
+    private String communit = null;
+    private String oidCPU = null;
+    private String oidMemoria = null;
+    private int porta = 0;
+    private int timeout = 0;
+    private int retries = 0;
+    public static int qtd = 0;
 
     /**
      * Creates new form ClienteFrame
      */
     public ClienteFrame() {
         initComponents();
+        this.txtIp.setText("172.16.0.224");
+        this.txtPorta.setText("161");
+        this.txtCommunit.setText("abcBolinhas");
+        this.txtRetries.setText("10");
+        this.txtTimeout.setText("10");
         t = new Thread(this);
         t.start();
     }
-
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -55,18 +90,24 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
         jLabel5 = new javax.swing.JLabel();
         txtRetries = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
-        txtOidTemp = new javax.swing.JTextField();
+        txtOidCpu = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        txtOidMemoria = new javax.swing.JTextField();
         jPanel3 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         txtAreaDadosEquipamento = new javax.swing.JTextArea();
         jPanel4 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        txtAreaDadosEquipamento1 = new javax.swing.JTextArea();
+        txtAreaDadosInterface = new javax.swing.JTextArea();
         jLabel7 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox<>();
+        jComboBoxInterfaces = new javax.swing.JComboBox<>();
         txtIntervalo = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        txtPercentualDescartes = new javax.swing.JTextField();
+        txtPercentualErro = new javax.swing.JTextField();
         jPanel6 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -87,7 +128,6 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
 
         btnSair.setHorizontalTextPosition(JButton.LEFT);
         btnSair.setText("Sair");
-        btnSair.setEnabled(false);
         btnSair.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSairActionPerformed(evt);
@@ -123,10 +163,17 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
 
         jLabel6.setText("Retransmissões:");
 
-        txtOidTemp.setToolTipText("Nome");
-        txtOidTemp.setName(""); // NOI18N
+        txtOidCpu.setText(".1.3.6.1.4.1.25506.2.6.1.1.1.1.6.8");
+        txtOidCpu.setToolTipText("Nome");
+        txtOidCpu.setName(""); // NOI18N
 
-        jLabel9.setText("OID Temperatura:");
+        jLabel9.setText("OID CPU:");
+
+        jLabel10.setText("OID Memória:");
+
+        txtOidMemoria.setText(".1.3.6.1.4.1.25506.2.6.1.1.1.1.8.8");
+        txtOidMemoria.setToolTipText("Nome");
+        txtOidMemoria.setName(""); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -134,17 +181,14 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel9)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtIp, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(txtIp, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel1))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(txtPorta, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel2))
@@ -170,8 +214,19 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
                                 .addComponent(btnLerEquipamento)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btnSair))
-                            .addComponent(txtOidTemp, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(6, 6, 6)
+                                .addComponent(jLabel10)))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                            .addComponent(txtOidCpu, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addComponent(txtOidMemoria, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addContainerGap())
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                            .addComponent(jLabel9)
+                            .addGap(869, 869, 869)))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -194,17 +249,20 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
                     .addComponent(btnLerEquipamento)
                     .addComponent(btnSair))
                 .addGap(1, 1, 1)
-                .addComponent(jLabel9)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel9)
+                    .addComponent(jLabel10))
                 .addGap(1, 1, 1)
-                .addComponent(txtOidTemp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtOidCpu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtOidMemoria, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(10, Short.MAX_VALUE))
         );
-
-        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Dados do Equipamento"));
 
         txtAreaDadosEquipamento.setEditable(false);
         txtAreaDadosEquipamento.setColumns(20);
         txtAreaDadosEquipamento.setRows(5);
+        txtAreaDadosEquipamento.setBorder(javax.swing.BorderFactory.createTitledBorder("Dados do Equipamento"));
         jScrollPane1.setViewportView(txtAreaDadosEquipamento);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -219,43 +277,73 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(51, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 179, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Interfaces"));
 
-        txtAreaDadosEquipamento1.setEditable(false);
-        txtAreaDadosEquipamento1.setColumns(20);
-        txtAreaDadosEquipamento1.setRows(5);
-        txtAreaDadosEquipamento1.setBorder(javax.swing.BorderFactory.createTitledBorder("Resumo da Interface"));
-        jScrollPane2.setViewportView(txtAreaDadosEquipamento1);
+        txtAreaDadosInterface.setEditable(false);
+        txtAreaDadosInterface.setColumns(20);
+        txtAreaDadosInterface.setRows(5);
+        txtAreaDadosInterface.setBorder(javax.swing.BorderFactory.createTitledBorder("Resumo da Interface"));
+        jScrollPane2.setViewportView(txtAreaDadosInterface);
 
         jLabel7.setText("Interface:");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBoxInterfaces.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxInterfacesActionPerformed(evt);
+            }
+        });
 
-        jLabel8.setText("Intervalo:");
+        txtIntervalo.setText("2");
+
+        jLabel8.setText("Intervalo(segundos):");
+
+        jLabel11.setText("Percentual de descartes de entrada/saída");
+
+        jLabel12.setText("Percentual de erro de entrada/saída");
+
+        txtPercentualDescartes.setEditable(false);
+        txtPercentualDescartes.setToolTipText("Nome");
+        txtPercentualDescartes.setName(""); // NOI18N
+
+        txtPercentualErro.setEditable(false);
+        txtPercentualErro.setToolTipText("Nome");
+        txtPercentualErro.setName(""); // NOI18N
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addGap(13, 13, 13)
+                        .addContainerGap()
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 730, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel7))
-                        .addGap(18, 18, 18)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane2)
                             .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addComponent(jLabel8)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addComponent(txtIntervalo))))
+                                .addGap(13, 13, 13)
+                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jComboBoxInterfaces, javax.swing.GroupLayout.PREFERRED_SIZE, 730, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel7))
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(jPanel4Layout.createSequentialGroup()
+                                        .addComponent(jLabel8)
+                                        .addGap(0, 0, Short.MAX_VALUE))
+                                    .addComponent(txtIntervalo)))))
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addGap(58, 58, 58)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtPercentualErro, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel12))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtPercentualDescartes, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel11))
+                        .addGap(87, 87, 87)))
                 .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
@@ -267,10 +355,18 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
                     .addComponent(jLabel8))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jComboBoxInterfaces, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txtIntervalo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel12)
+                    .addComponent(jLabel11))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtPercentualDescartes, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtPercentualErro, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -284,7 +380,7 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 185, Short.MAX_VALUE)
+            .addGap(0, 261, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -309,11 +405,11 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -325,60 +421,111 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
             this.txtAreaDadosEquipamento.setText(null);
         }
 
-        String ip = txtIp.getText();
-        String communit = txtCommunit.getText();
-        String oidTemp = txtOidTemp.getText();
+        this.ip = txtIp.getText();
+        this.communit = txtCommunit.getText();
+        this.oidCPU = this.txtOidCpu.getText();
+        this.oidMemoria = this.txtOidMemoria.getText();
 
-        int porta = 0;
-        int timeout = 0;
-        int retries = 0;
         try {
-            porta = Integer.parseInt(txtPorta.getText());
-            timeout = Integer.parseInt(txtTimeout.getText());
-            retries = Integer.parseInt(txtRetries.getText());
+            this.porta = Integer.parseInt(txtPorta.getText());
+            this.timeout = Integer.parseInt(txtTimeout.getText());
+            this.retries = Integer.parseInt(txtRetries.getText());
         } catch (NumberFormatException e) {
         }
 
-        if (ip.isEmpty() || communit.isEmpty() || porta == 0 || timeout == 0 || retries == 0) {
+        if (this.ip.isEmpty() || this.communit.isEmpty() || this.porta == 0 || this.timeout == 0 || this.retries == 0) {
             JOptionPane.showMessageDialog(this, "Por favor preencha os campos!");
             return;
         }
-        this.snmp = new SNMPManager(new Conexao(ip, porta, communit, timeout, retries));
-        
+        this.snmp = new SNMPManager(new Conexao(this.ip, this.porta, this.communit, this.timeout, this.retries));
+
         this.txtAreaDadosEquipamento.append(this.getDescricao());
         this.txtAreaDadosEquipamento.append(this.getContato());
         this.txtAreaDadosEquipamento.append(this.getNome());
         this.txtAreaDadosEquipamento.append(this.getLocalizacao());
         this.txtAreaDadosEquipamento.append(this.getTempoLigado());
-        if (!oidTemp.isEmpty()) {
-            this.txtAreaDadosEquipamento.append(this.getTemperatura(oidTemp));
+        if (!oidCPU.isEmpty()) {
+            this.txtAreaDadosEquipamento.append(this.getCPU(oidCPU));
+        }
+        if (!oidMemoria.isEmpty()) {
+            this.txtAreaDadosEquipamento.append(this.getMemoria(oidMemoria));
         }
 
+        DefaultComboBoxModel defaultComboBox = new DefaultComboBoxModel();
+        ArrayList ifIndex = this.getIfDescr();
+        for (int i = 0; i < ifIndex.size(); i++) {
+            defaultComboBox.addElement(ifIndex.get(i));
+        }
+        this.jComboBoxInterfaces.setModel(defaultComboBox);
+        this.snmp.close();
+        //this.jComboBoxInterfacesActionPerformed(evt);
     }//GEN-LAST:event_btnLerEquipamentoActionPerformed
 
-    private String getDescricao(){
+    private String getDescricao() {
         return "Descrição: " + this.snmp.getAsString(EquipamentoUniversal.SYSDESCR) + "\n";
     }
-    
-    private String getContato(){
+
+    private String getContato() {
         return "Contato: " + this.snmp.getAsString(EquipamentoUniversal.SYSCONTACT) + "\n";
     }
-    
-    private String getNome(){
+
+    private String getNome() {
         return "Nome: " + this.snmp.getAsString(EquipamentoUniversal.SYSNAME) + "\n";
     }
-    
-    private String getLocalizacao(){
+
+    private String getLocalizacao() {
         return "Localização: " + this.snmp.getAsString(EquipamentoUniversal.SYSLOCATION) + "\n";
     }
-    
-    private String getTempoLigado(){
+
+    private String getTempoLigado() {
         return "Tempo Ligado: " + this.snmp.getAsString(EquipamentoUniversal.SYSUPTIME) + "\n";
     }
-    private String getTemperatura(String oidTemp){
-        return "Temperatura: " + this.snmp.getAsString( new OID(oidTemp)) + "\n";
+
+    private String getCPU(String oidCPU) {
+        return "CPU: " + this.snmp.getAsString(new OID(oidCPU)) + "\n";
     }
-    
+
+    private String getMemoria(String memoria) {
+        return "Memória: " + this.snmp.getAsString(new OID(memoria)) + "\n";
+    }
+
+    private int getIfNumber() {
+        return Integer.parseInt(this.snmp.getAsString(EquipamentoUniversal.IFNUMBER));
+    }
+
+    private ArrayList getIfIndex() {
+        ArrayList ifIndex = new ArrayList<>();
+        for (int i = 1; i <= this.getIfNumber(); i++) {
+            int value = Integer.parseInt(this.snmp.getAsString(new OID(EquipamentoUniversal.IFINDEX + i)));
+            ifIndex.add(value);
+        }
+        return ifIndex;
+    }
+
+    private ArrayList getIfDescr() {
+        Pattern p = Pattern.compile("[0-9a-fA-F]+");        
+        ArrayList ifDescr = new ArrayList<>();
+        ArrayList ifIndex = this.getIfIndex();
+        for (int i = 0; i < ifIndex.size(); i++) {
+            String value = this.snmp.getAsString(new OID(EquipamentoUniversal.IFDESCR + ifIndex.get(i)));
+            value = value.replace(":", "");
+            Matcher m = p.matcher(value);
+            if (m.matches()) {
+                byte[] bytes = DatatypeConverter.parseHexBinary(value);
+                try {
+                    ifDescr.add(new IfIndex((int) ifIndex.get(i), new String(bytes, "UTF-8")));
+                } catch (UnsupportedEncodingException ex) {
+                    Logger.getLogger(ClienteFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }else{
+                ifDescr.add(new IfIndex((int) ifIndex.get(i), value));
+            }
+            
+
+        }
+        return ifDescr;
+    }
+
     private void erroConexao() {
         this.txtIp.setText("");
         JOptionPane.showMessageDialog(this, "Infelizmente não foi possível se conectar!\nTente com outro nome.");
@@ -386,9 +533,208 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
 
 
     private void btnSairActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSairActionPerformed
-       
+        System.exit(0);
     }//GEN-LAST:event_btnSairActionPerformed
 
+    private void jComboBoxInterfacesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxInterfacesActionPerformed
+        if (this.txtAreaDadosInterface.getLineCount() > 0) {
+            this.txtAreaDadosInterface.setText(null);
+        }
+        this.snmp = new SNMPManager(new Conexao(this.ip, this.porta, this.communit, this.timeout, this.retries));
+        IfIndex iFIndex = (IfIndex) this.jComboBoxInterfaces.getSelectedItem();
+        int index = iFIndex.getIndex();
+        int intervalo = Integer.parseInt(txtIntervalo.getText());
+
+        this.txtAreaDadosInterface.append("Indice:" + index + "\n");
+        this.txtAreaDadosInterface.append("Descrição:" + iFIndex.getNome() + "\n");
+        this.txtAreaDadosInterface.append(this.getIfType(index));
+        this.txtAreaDadosInterface.append(this.getIfSpeed(index));
+        this.txtAreaDadosInterface.append(this.getIfPhysAddress(index));
+        this.txtAreaDadosInterface.append(this.getIfAdminStatus(index));
+        this.txtAreaDadosInterface.append(this.getIfOperStatus(index));
+
+        
+        // Create dataset
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        // Create chart
+        JFreeChart chart = ChartFactory.createLineChart(
+            "Taxa de Utilização", // Chart title
+            null, // X-Axis Label
+            "Porcentagem %", // Y-Axis Label
+            dataset
+            );
+        ChartPanel panel = new ChartPanel(chart);
+        
+        panel.setSize(jPanel6.getWidth(), jPanel6.getHeight());
+        jPanel6.add(panel);
+        jPanel6.repaint();
+
+        Timer timer = new Timer();
+        int begin = intervalo;
+        int timeinterval = intervalo * 1000;
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if(ClienteFrame.qtd == 5){
+                    dataset.clear();
+                    ClienteFrame.qtd = 0;
+                }
+                try {
+                    ClienteFrame.qtd++;
+                    dataset.addValue(getTaxaUtilizacao(index), "Utilização", getDateTime());
+                    txtPercentualErro.setText(null);
+                    txtPercentualDescartes.setText(null);
+                    txtPercentualErro.setText(String.valueOf(getPercentualErrors(index)) + "%  Data: " + getDateTime());
+                    txtPercentualDescartes.setText(String.valueOf(getPercentualDescartes(index)) + "%  Data: " + getDateTime()); 
+                } catch (Exception e) {
+                }
+            }
+        }, begin, timeinterval);
+        
+    }//GEN-LAST:event_jComboBoxInterfacesActionPerformed
+
+
+    
+    private String getDateTime() {
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        Date date = new Date();
+        return dateFormat.format(date);
+    }
+    
+    private String getIfType(int ifIndex) {
+        return "Tipo: " + this.snmp.getAsString(new OID(EquipamentoUniversal.IFTYPE + ifIndex)) + "\n";
+    }
+
+    private String getIfSpeed(int ifIndex) {
+        return "Speed: " + this.snmp.getAsString(new OID(EquipamentoUniversal.IFSPEED + ifIndex)) + "\n";
+    }
+
+    private String getIfPhysAddress(int ifIndex) {
+        return "MAC: " + this.snmp.getAsString(new OID(EquipamentoUniversal.IFPHYSADDRESS + ifIndex)) + "\n";
+    }
+
+    private String getIfAdminStatus(int ifIndex) {
+        String status = null;
+        switch (this.snmp.getAsString(new OID(EquipamentoUniversal.IFADMINSTATUS + ifIndex))) {
+            case "1":
+                status = "up(1)";
+                break;
+            case "2":
+                status = "down(2)";
+                break;
+        }
+        return "Status Administrativo: " + status + "\n";
+    }
+
+    private double getTaxaUtilizacao(int ifIndex) {
+        double value = 0.0;
+        try {
+            int timer = 1000;
+            double speed = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFSPEED + ifIndex)));
+            double inOctetsStart = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFINOCTETS + ifIndex)));
+            double outOctetsStart = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFOUTOCTETS + ifIndex)));
+            Thread.sleep(timer);
+            double inOctetsEnd = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFINOCTETS + ifIndex)));
+            double outOctetsEnd = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFOUTOCTETS + ifIndex)));
+
+            if (inOctetsStart != 0.0 && outOctetsStart != 0.0) {
+                while (inOctetsStart == inOctetsEnd) {
+                    Thread.sleep(timer);
+                    inOctetsEnd = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFINOCTETS + ifIndex)));
+                }
+
+                while (outOctetsStart == outOctetsEnd) {
+                    Thread.sleep(timer);
+                    outOctetsEnd = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFOUTOCTETS + ifIndex)));
+                }
+            }
+
+            double rate = (((inOctetsEnd - inOctetsStart) + (outOctetsEnd - outOctetsStart)) / (timer * speed)) * (8 * 100);
+            value = rate * 100;
+
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ClienteFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return new BigDecimal(value).setScale(2, RoundingMode.HALF_UP).doubleValue();
+
+    }
+    
+    private double getPercentualErrors(int ifIndex) {
+        double value = 0.0;
+        try {
+            int timer = 1000;
+            double inErrorsStart = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFINERRORS + ifIndex)));
+            double outErrorsStart = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFOUTERRORS + ifIndex)));
+            Thread.sleep(timer);
+            double inErrorsEnd = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFINERRORS + ifIndex)));
+            double outErrorsEnd = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFOUTERRORS + ifIndex)));
+
+            if (inErrorsStart != 0.0 && outErrorsStart != 0.0) {
+                while (inErrorsStart == outErrorsStart) {
+                    Thread.sleep(timer);
+                    inErrorsEnd = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFINERRORS + ifIndex)));
+                }
+
+                while (outErrorsEnd == outErrorsEnd) {
+                    Thread.sleep(timer);
+                    outErrorsEnd = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFOUTERRORS + ifIndex)));
+                }
+            }
+
+            double rate = (((inErrorsEnd - inErrorsStart) + (outErrorsEnd - outErrorsStart)) / timer) * 100;
+            value = rate * 100;
+
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ClienteFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return new BigDecimal(value).setScale(2, RoundingMode.HALF_UP).doubleValue();
+
+    }
+    
+    private double getPercentualDescartes(int ifIndex) {
+        double value = 0.0;
+        try {
+            int timer = 1000;
+            double inDiscardsStart = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFINDISCARDS + ifIndex)));
+            double outDiscardsStart = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFOUTDISCARDS + ifIndex)));
+            Thread.sleep(timer);
+            double inDiscardsEnd = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFINDISCARDS + ifIndex)));
+            double outDiscardsEnd = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFOUTDISCARDS + ifIndex)));
+
+            if (inDiscardsStart != 0.0 && outDiscardsStart != 0.0) {
+                while (inDiscardsStart == outDiscardsStart) {
+                    Thread.sleep(timer);
+                    inDiscardsEnd = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFINDISCARDS + ifIndex)));
+                }
+
+                while (outDiscardsEnd == outDiscardsEnd) {
+                    Thread.sleep(timer);
+                    outDiscardsEnd = Double.parseDouble(this.snmp.getAsString(new OID(EquipamentoUniversal.IFOUTDISCARDS + ifIndex)));
+                }
+            }
+
+            double rate = (((inDiscardsEnd - inDiscardsStart) + (outDiscardsEnd - outDiscardsStart)) / timer) * 100;
+            value = rate * 100;
+
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ClienteFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return new BigDecimal(value).setScale(2, RoundingMode.HALF_UP).doubleValue();
+
+    }
+
+    private String getIfOperStatus(int ifIndex) {
+        String status = null;
+        switch (this.snmp.getAsString(new OID(EquipamentoUniversal.IFOPERSTATUS + ifIndex))) {
+            case "1":
+                status = "up(1)";
+                break;
+            case "2":
+                status = "down(2)";
+                break;
+        }
+        return "Operacional: " + status + "\n";
+    }
 
     @Override
     public void run() {
@@ -436,8 +782,11 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnLerEquipamento;
     private javax.swing.JButton btnSair;
-    private javax.swing.JComboBox<String> jComboBox1;
+    private javax.swing.JComboBox<String> jComboBoxInterfaces;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -453,11 +802,14 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextArea txtAreaDadosEquipamento;
-    private javax.swing.JTextArea txtAreaDadosEquipamento1;
+    private javax.swing.JTextArea txtAreaDadosInterface;
     private javax.swing.JTextField txtCommunit;
     private javax.swing.JTextField txtIntervalo;
     private javax.swing.JTextField txtIp;
-    private javax.swing.JTextField txtOidTemp;
+    private javax.swing.JTextField txtOidCpu;
+    private javax.swing.JTextField txtOidMemoria;
+    private javax.swing.JTextField txtPercentualDescartes;
+    private javax.swing.JTextField txtPercentualErro;
     private javax.swing.JTextField txtPorta;
     private javax.swing.JTextField txtRetries;
     private javax.swing.JTextField txtTimeout;

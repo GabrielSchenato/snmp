@@ -104,4 +104,12 @@ public class SNMPManager {
         target.setVersion(SnmpConstants.version2c);
         return target;
     }
+    
+    public void close(){
+        try {
+            this.snmp.close();
+        } catch (IOException ex) {
+            Logger.getLogger(SNMPManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }
