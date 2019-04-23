@@ -297,7 +297,7 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
             }
         });
 
-        txtIntervalo.setText("2");
+        txtIntervalo.setText("10");
 
         jLabel8.setText("Intervalo(segundos):");
 
@@ -581,7 +581,7 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
                 }
                 try {
                     ClienteFrame.qtd++;
-                    dataset.addValue(getTaxaUtilizacao(index), "Utilização", getDateTime());
+                    dataset.addValue(getTaxaUtilizacao(index) / 2, "Utilização", getDateTime());
                     txtPercentualErro.setText(null);
                     txtPercentualDescartes.setText(null);
                     txtPercentualErro.setText(String.valueOf(getPercentualErrors(index)) + "%  Data: " + getDateTime());
@@ -649,8 +649,11 @@ public class ClienteFrame extends javax.swing.JFrame implements Runnable {
                 }
             }
 
-            double rate = (((inOctetsEnd - inOctetsStart) + (outOctetsEnd - outOctetsStart)) / (timer * speed)) * (8 * 100);
-            value = rate * 100;
+            double totalBytes = ((inOctetsEnd - inOctetsStart) + (outOctetsEnd - outOctetsStart));
+            double bytespersecond = totalBytes / 1;
+            double bitsPerSecond = bytespersecond * 8;
+            double rateUtilization = bitsPerSecond / speed;
+            value = rateUtilization * 100;
 
         } catch (InterruptedException ex) {
             Logger.getLogger(ClienteFrame.class.getName()).log(Level.SEVERE, null, ex);

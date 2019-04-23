@@ -1,0 +1,2 @@
+Tecnologia utilizada: Java
+Bibliotecas: jcommon-1.0.23, jfreechart-1.0.19, snmp4j-2.7.0 e snmp4j-2.7.0-javadoc.
